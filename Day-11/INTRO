@@ -1,0 +1,205 @@
+What is JSON?
+JSON (JavaScript Object Notation) is a lightweight data interchange format that is easy for humans to read and write, and easy for machines to parse and generate.
+
+It is text-based and uses key-value pairs to represent data.
+It's widely used for APIs, configurations, and data exchange between systems.
+It is language-independent, making it suitable for various programming languages.
+Example of JSON:
+json
+Copy
+{
+  "name": "Anu",
+  "age": 24,
+  "skills": ["Python", "Cloud Engineering", "SQL"]
+}
+Why is JSON Used?
+Configuration Management: Used in defining configurations for applications or infrastructure (e.g., Azure ARM templates, AWS CloudFormation).
+APIs: Commonly used for data exchange in REST APIs.
+Lightweight and Readable: Easier to work with compared to XML.
+Cross-Platform: Language-agnostic, making it widely compatible.
+How to Create Storage and VM Resources in Azure Using JSON
+In Azure, JSON is used with ARM Templates (Azure Resource Manager templates) to define and deploy resources.
+
+Example: Creating a Storage Account and a Virtual Machine
+Here’s a sample JSON ARM template:
+
+json
+Copy
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "resources": [
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2022-09-01",
+      "name": "myuniquestorageaccount",
+      "location": "eastus",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "kind": "StorageV2",
+      "properties": {}
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "apiVersion": "2022-03-01",
+      "name": "myVirtualMachine",
+      "location": "eastus",
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "Standard_B2s"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "Canonical",
+            "offer": "UbuntuServer",
+            "sku": "18.04-LTS",
+            "version": "latest"
+          },
+          "osDisk": {
+            "createOption": "FromImage"
+          }
+        },
+        "osProfile": {
+          "computerName": "myVM",
+          "adminUsername": "azureuser",
+          "adminPassword": "P@ssw0rd1234!"
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', 'myNic')]"
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkInterfaces', 'myNic')]"
+      ]
+    }
+  ]
+}
+Steps to Deploy:
+Save the JSON: Save the above JSON in a file, e.g., template.json.
+
+Deploy with Azure CLI: Use the following command to deploy the ARM template:
+
+bash
+Copy
+az deployment group create --resource-group <ResourceGroupName> --template-file template.json
+Replace Parameters:
+
+Update <ResourceGroupName> with your resource group name.
+Change properties like location, adminUsername, and adminPassword to suit your setup.
+
+Let me explain the structure and purpose of the JSON ARM template for creating a Storage Account and a Virtual Machine in Azure.
+
+
+1. $schema
+Purpose: Defines the schema or rules that the JSON file follows.
+Example:
+json
+Copy
+"$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#"
+This helps Azure validate the template structure and ensures it conforms to the expected format.
+2. contentVersion
+Purpose: Indicates the version of your template. It's a user-defined value for versioning the file.
+Example:
+json
+Copy
+"contentVersion": "1.0.0.0"
+3. resources
+Purpose: This is the core section where you define the Azure resources you want to create.
+It contains a list of objects, each representing a resource (like a storage account or a virtual machine).
+Example:
+json
+Copy
+"resources": [ ... ]
+4. Defining a Storage Account
+Purpose: This defines a storage account in Azure.
+Key Fields:
+type: Specifies the resource type (Microsoft.Storage/storageAccounts).
+apiVersion: Indicates the version of the API to interact with Azure.
+name: Name of the storage account (must be globally unique).
+location: Azure region where the resource will be created.
+sku: Specifies the performance level (e.g., Standard_LRS for locally redundant storage).
+kind: Defines the type of storage account (e.g., StorageV2).
+Example:
+json
+Copy
+{
+  "type": "Microsoft.Storage/storageAccounts",
+  "apiVersion": "2022-09-01",
+  "name": "myuniquestorageaccount",
+  "location": "eastus",
+  "sku": { "name": "Standard_LRS" },
+  "kind": "StorageV2",
+  "properties": {}
+}
+5. Defining a Virtual Machine
+Purpose: This defines a virtual machine in Azure.
+Key Fields:
+type: Specifies the resource type (Microsoft.Compute/virtualMachines).
+apiVersion: API version to interact with Azure for VM deployment.
+name: Name of the virtual machine.
+location: Azure region where the VM will be created.
+properties:
+hardwareProfile: Defines the size or SKU of the VM (e.g., Standard_B2s).
+storageProfile: Configures the OS image and disk.
+imageReference: Points to the VM image to use (e.g., Ubuntu Server 18.04).
+osDisk: Configures the OS disk (e.g., createOption: FromImage to use the default OS image).
+osProfile: Configures OS-related settings.
+computerName: Name of the VM inside the operating system.
+adminUsername & adminPassword: Login credentials for the VM.
+networkProfile: Associates the VM with a network interface (e.g., myNic).
+Example:
+json
+Copy
+{
+  "type": "Microsoft.Compute/virtualMachines",
+  "apiVersion": "2022-03-01",
+  "name": "myVirtualMachine",
+  "location": "eastus",
+  "properties": {
+    "hardwareProfile": { "vmSize": "Standard_B2s" },
+    "storageProfile": {
+      "imageReference": {
+        "publisher": "Canonical",
+        "offer": "UbuntuServer",
+        "sku": "18.04-LTS",
+        "version": "latest"
+      },
+      "osDisk": { "createOption": "FromImage" }
+    },
+    "osProfile": {
+      "computerName": "myVM",
+      "adminUsername": "azureuser",
+      "adminPassword": "P@ssw0rd1234!"
+    },
+    "networkProfile": {
+      "networkInterfaces": [
+        {
+          "id": "[resourceId('Microsoft.Network/networkInterfaces', 'myNic')]"
+        }
+      ]
+    }
+  },
+  "dependsOn": [
+    "[resourceId('Microsoft.Network/networkInterfaces', 'myNic')]"
+  ]
+}
+6. dependsOn
+Purpose: Specifies dependencies between resources.
+Example: In the VM definition, dependsOn ensures the VM is created only after the network interface (myNic) is set up.
+Summary Flow of the JSON Template:
+Storage Account:
+
+A globally unique name for storage.
+Standard performance with redundancy.
+Virtual Machine:
+
+Uses an Ubuntu image.
+Configured with hardware, OS, and network interface.
+Depends on network resources like NICs.
+
+
